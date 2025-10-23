@@ -27,19 +27,24 @@ jobs:
 
         run: npm test
 
-  deploy:
-  needs: build
-  runs-on: ubuntu-latest
+name: Docker Build
+on:
+  push:
+    branches: [main]
  
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
- 
-    - name: Deploy to Netlify
-      uses: nwtgck/actions-netlify@v2.0
-      with:
-        publish-dir: ./build
-        production-deploy: true
-      env:
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Build &amp; Push Image
+        run: |
+          docker build -t myapp:latest .
+          docker tag myapp:latest myuser/myapp:latest
+          docker push myuser/myapp:latest
+
